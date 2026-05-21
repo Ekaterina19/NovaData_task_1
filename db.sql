@@ -76,6 +76,27 @@ WHERE id = 2;
 
 select * FROM users_audit;
 
+CREATE OR REPLACE FUNCTION save_yesterday_csv()
+RETURNS VOID AS $$
+DECLARE
+    export_date DATE := CURRENT_DATE - INTERVAL '1 day';
+    file_path TEXT := '/tmp/users_audit_export_';
+    all_path TEXT;
+    query TEXT;
+BEGIN 
+    all_path := file_path || to_char(export_date, 'YYYY-MM-DD') || '.csv';
+    query := format (
+        'COPY (
+                SELECT  user_id, changed_at, changed_by, field_changed, old_value, new_value
+                FROM users_audit
+                WHERE changed_at::date = %L
+            ) TO %L WITH (FORMAT CSV, HEADER true, DELIMITER ',', ENCODING UTF8, NULL NA );',
+             export_date,all_path
+    );
+    EXECUTE query;
+
+END;
+$$ LANGUAGE plpgsql;
 
 
 
