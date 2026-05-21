@@ -98,5 +98,9 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-
+SELECT cron.schedule(
+'daily_users_audit_export',
+'0 3 * * * ',
+'SELECT public.save_yesterday_csv();'
+);
 
